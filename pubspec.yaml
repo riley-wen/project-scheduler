@@ -1,0 +1,25 @@
+name: project_scheduler
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_quill: ^11.5.0
+  google_fonts: ^8.2.1
+  localstore: ^1.4.0
+  shadcn_ui: ^0.57.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
