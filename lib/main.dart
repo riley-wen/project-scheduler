@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:localstore/localstore.dart';
 import 'package:project_scheduler/data/routes.dart';
 import 'package:project_scheduler/pages/unknownPage.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   runApp(const MainApp());
 }
@@ -40,7 +38,7 @@ class MainApp extends StatelessWidget {
           builder: (context, child) {
             return ShadAppBuilder(child: child!);
           },
-          routes: Routes.routes.map((route, routeObj) => MapEntry(route, routeObj.widget)),
+          routes: Routes.routes.map((route, routeObj) => MapEntry(route, (BuildContext cxt) => routeObj.widget(cxt))),
           onGenerateRoute: (settings) {
             if(settings.name == null || !Routes.routes.keys.contains("${settings.name}")){
               return MaterialPageRoute(builder: (_) => UnknownPage());
@@ -48,7 +46,7 @@ class MainApp extends StatelessWidget {
             return PageRouteBuilder(
               settings: settings,
               pageBuilder: (context, animation, secondaryAnimation) => Routes.routes[settings.name]!.widget(context),
-              transitionsBuilder: (_, a, __, c) => FadeTransition(opacity: a, child: c)
+              transitionsBuilder: (_, a, _, c) => FadeTransition(opacity: a, child: c)
             );
           },
         );

@@ -1,9 +1,24 @@
-class Dependency {
-  String name = "";
-  String version = "";
-  String link = "";
+import 'package:project_scheduler/data/projectunit.dart';
 
-  Dependency();
+class Dependency extends ProjectUnit {
+  String name;
+  String? version;
+  String? link;
+
+  Dependency(
+    this.name,
+    this.version,
+    this.link  
+  );
+  Map<String, dynamic> toJson() => {
+    "name": name,
+    "version": version,
+    "link": link
+  };
+  Dependency.fromJson(Map<String, dynamic> json) :
+    name = json["name"],
+    version = json["version"],
+    link = json["link"];
 
   @override
   bool operator ==(Object other) =>

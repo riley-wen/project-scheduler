@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project_scheduler/pages/createprojectpage.dart';
+import 'package:project_scheduler/pages/editprojectpage/editprojectpage.dart';
 import 'package:project_scheduler/pages/homepage.dart';
 
 /// Class for storing routes provided to the main [MaterialApp]. 
@@ -11,8 +12,7 @@ import 'package:project_scheduler/pages/homepage.dart';
 final class Routes {
   Widget Function(BuildContext) widget;
   String name;
-  Widget Function(BuildContext)? image;
-  Routes({required this.widget, required this.name, this.image});
+  Routes({required this.widget, required this.name});
   
   static void navigate(BuildContext context, String routeName){
     Navigator.of(context).pushReplacementNamed(routeName);
@@ -21,21 +21,17 @@ final class Routes {
   /// Constant mappings for primary routes that do not accept incoming route data.
   static final Map<String, Routes> routes = {
     "/home": Routes(
-      widget: (BuildContext context) => const HomePage(),
+      widget: (BuildContext context) => HomePage(),
       name: "Home",
-      image: (BuildContext context) => Icon(
-        Icons.home,
-        color: Theme.of(context).colorScheme.onSurface,
-      )
     ),
     "/createproject": Routes( // figure out dynamic routing for editing / creatubg
-      widget: (BuildContext context) => const CreateProjectPage(),
+      widget: (BuildContext context) => CreateProjectPage(),
       name: "CreateProject",
-      image: (BuildContext context) => Icon(
-        Icons.home,
-        color: Theme.of(context).colorScheme.onSurface,
-      )
     ),
+    "/editproject": Routes(
+      widget: (BuildContext context) => EditProjectPage(),
+      name: "EditProject",
+    )
     
   };
 }

@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:project_scheduler/data/Project.dart';
+import 'package:project_scheduler/data/project.dart';
+import 'package:project_scheduler/pages/editprojectpage/editprojectpage.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 class ProjectTab extends StatelessWidget {
-  final Project project = Project.testProject;
+  final Project project;
 
-  @Preview(name: "Project Tab")
-  ProjectTab({super.key});
+  const ProjectTab({required this.project, super.key});
   
   @override
   Widget build(BuildContext context) {
@@ -88,7 +87,9 @@ class ProjectTab extends StatelessWidget {
                   builder: (context) => Text("Edit"),
                   child: ShadIconButton.outline(
                   onPressed: () {
-
+                    Navigator.of(context).pushNamed(
+                      "/editproject", arguments: EditProjectScreenArguments(project.projectId)
+                    );
                   },
                   icon: const Icon(LucideIcons.edit),
                 )),
@@ -96,7 +97,7 @@ class ProjectTab extends StatelessWidget {
                   builder: (context) => Text("Export"),
                   child: ShadIconButton.outline(
                   onPressed: () {
-
+                    
                   },
                   icon: const Icon(LucideIcons.share),
                 )),
@@ -127,7 +128,10 @@ class ProjectTab extends StatelessWidget {
                             backgroundColor: ShadTheme.of(context).colorScheme.destructive,
                             foregroundColor: ShadTheme.of(context).colorScheme.destructiveForeground,
                             child: const Text('Delete'),
-                            onPressed: () => Navigator.of(context).pop(true)
+                            onPressed: () {
+                              Navigator.of(context).pop(true);
+                              HeaderCache.instance.delete(project.projectId);
+                            }
                           ),
                         ],
                       ),
