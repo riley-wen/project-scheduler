@@ -9,11 +9,10 @@ ${text}
 String exportProjectReadMe(
   Project project,
   {
-    ExportSettings settings = const ExportSettings(
-      format: ExportFormat.github
-    )
+    ExportSettings? settings
   }
 ) {
+  settings ??= ExportSettings.defaultSettings;
   if (settings.format == ExportFormat.github) {
     return 
 """# ${project.name}
@@ -37,15 +36,15 @@ ${
 | Name | Version | Link |
 | --- | --- | --- |
 ${
-  project.dependencies.map((dep) => "| ${dep.name} | ${dep.version ?? ""} | ${dep.link ?? ""} |").join("\n")
+  project.dependencies.map((dep) => "| ${dep.name} | ${dep.version ?? ""} | ${dep.link != null ? "[${dep.link}](${dep.link})" : ""} |").join("\n")
 }""" 
 }
 ${
   !settings.includeRequirements ? "" :
   """## TODO
-  ${
+${
     project.requirements.map((req) => "- [${req.completed ? "x" : " "}] ${req.description}").join("\n")
-  }""" 
+}""" 
 }
 """;
   } else if (settings.format == ExportFormat.text) {
@@ -72,9 +71,9 @@ ${
 ${
   !settings.includeRequirements ? "" :
   """${_encapsulateText("TODO")}
-  ${
-    project.requirements.map((req) => "- [${req.completed ? "x" : " "}] ${req.description}").join("\n")
-  }""" 
+${
+  project.requirements.map((req) => "- [${req.completed ? "x" : " "}] ${req.description}").join("\n")
+}""" 
 }
 """;
   }
@@ -86,12 +85,15 @@ enum ExportFormat {
   github
 }
 class ExportSettings {
-  final ExportFormat format;
-  final bool includeRequirements;
-  final bool includeDependencies;
-  final bool includeReferences;
+  static final ExportSettings defaultSettings = ExportSettings(
+    format: ExportFormat.github
+  );
+  ExportFormat format;
+  bool includeRequirements;
+  bool includeDependencies;
+  bool includeReferences;
 
-  const ExportSettings({
+  ExportSettings({
     required this.format,
     this.includeDependencies = true,
     this.includeRequirements = false,

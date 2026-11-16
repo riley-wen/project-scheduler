@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:project_scheduler/components/project_export_sheet.dart';
 import 'package:project_scheduler/data/project.dart';
 import 'package:project_scheduler/data/project_export.dart';
 import 'package:project_scheduler/pages/editprojectpage/editprojectpage.dart';
@@ -104,7 +105,13 @@ class ProjectTab extends StatelessWidget {
                     Project.loadById(project.projectId).then(
                       (p) {
                         if (p != null) {
-                          print(exportProjectReadMe(p, settings: ExportSettings(format: ExportFormat.text, includeRequirements: true)));
+                          showShadSheet(
+                            side: ShadSheetSide.right,
+                            context: context,
+                            builder: (context) => ProjectExportSheet(
+                              exportedProjectId: project.projectId,
+                            ) 
+                          );
                         }
                       }
                     );
