@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:localstore/localstore.dart';
 import 'package:project_scheduler/data/datainfo.dart';
 import 'package:project_scheduler/data/dependency.dart';
+import 'package:project_scheduler/data/projectunit.dart';
 import 'package:project_scheduler/data/reference.dart';
 import 'package:project_scheduler/data/requirement.dart';
 
@@ -34,13 +35,11 @@ class HeaderCache {
     _headerSubscription.cancel();
   }
 }
-class Project {
-  static final Project testProject = Project._test();
-  
+class Project {  
   static final Random _random = Random(DateTime.now().microsecondsSinceEpoch);
   static const int idLength = 30;
   static const String idCharList = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890";
-  static final List<String> _registeredIds = List<String>.empty(growable: true);
+  static final Set<String> _registeredIds = <String>{};
 
   final List<Requirement> requirements = List<Requirement>.empty(growable: true);
   final List<Dependency> dependencies = List<Dependency>.empty(growable: true);
@@ -60,34 +59,38 @@ class Project {
     timeModified = timeCreated;
   }
 
-  Project._test() {
-    name = "Untitled Project";
-    description = "Description for an untitled project";
-    projectId = _generateProjectId();
-    timeCreated = DateTime(2016, 7);
-    timeModified = timeCreated.add(Duration(days: 500));
-    references.add(Reference("Label1", "Reference1"));
-  }
-
   // json constructors / funcs
 
   factory Project.fromJson(Map<String, dynamic> json) {
     Project proj = Project();
-    proj.projectId = json["projectId"];
+    proj.projectId = json["project_id"];
     proj.name = json["name"];
     proj.description = json["description"];
-    proj.timeModified = DateTime.parse(json["timeModified"]);
-    proj.timeCreated = DateTime.parse(json["timeCreated"]);
+    proj.timeModified = DateTime.parse(json["time_modified"]);
+    proj.timeCreated = DateTime.parse(json["time_created"]);
+    _registeredIds.add(proj.projectId);
     return proj;
   }
   Map<String, dynamic> toJson() => {
-      "projectId": projectId,
+      "project_id": projectId,
       "name": name,
       "description": description,
-      "timeModified": timeModified.toIso8601String(),
-      "timeCreated": timeCreated.toIso8601String()
+      "time_modified": timeModified.toIso8601String(),
+      "time_created": timeCreated.toIso8601String()
     };
   
+  String? removeUnit(ProjectUnit unit) {
+    if (unit is Reference) {
+      references.removeWhere((u) => u.unitId == unit.unitId);
+    } else if (unit is Requirement) {
+      requirements.removeWhere((u) => u.unitId == unit.unitId);
+    } else if (unit is Dependency) {
+      dependencies.removeWhere((u) => u.unitId == unit.unitId);
+    } else {
+      return "Error: Could not detect unit type";
+    }
+    return null;
+  }
 
   static Future<List<String>> getAllIds() async 
     => Localstore.instance.collection(Datainfo.projectCollectionKey).get().then((all) => all?.keys.toList() ?? []);
@@ -100,7 +103,7 @@ class Project {
     Project? ret = await Localstore.instance.collection(Datainfo.projectCollectionKey).doc(id).get().then(
       (data) => data != null ? Project.fromJson(data) : null);
     if (ret == null) return null;
-    ret._loadElements();
+    await ret._loadElements();
     return ret;
   }
 
@@ -117,34 +120,37 @@ class Project {
 
   Future<void> _saveElements() async {
     await Localstore.instance.collection(Datainfo.dependencyCollectionKey).doc(projectId).set({
-    "data" : dependencies.map((d) => d.toJson()).toList()
+      "last_saved" : DateTime.now().millisecondsSinceEpoch,
+      "data" : {for (Dependency item in dependencies) item.unitId : item.toJson()}
     });
     await Localstore.instance.collection(Datainfo.requirementCollectionKey).doc(projectId).set({
-      "data" : requirements.map((d) => d.toJson()).toList()
+      "last_saved" : DateTime.now().millisecondsSinceEpoch,
+      "data" : {for (Requirement item in requirements) item.unitId : item.toJson()}
     });
     await Localstore.instance.collection(Datainfo.referenceCollectionKey).doc(projectId).set({
-      "data" : references.map((d) => d.toJson()).toList()
+      "last_saved" : DateTime.now().millisecondsSinceEpoch,
+      "data" : {for (Reference item in references) item.unitId : item.toJson()}
     });
   }
-  void _loadElements() {
-    Localstore.instance.collection(Datainfo.dependencyCollectionKey).doc(projectId).get().then(
+  Future<void> _loadElements() async {
+    await Localstore.instance.collection(Datainfo.dependencyCollectionKey).doc(projectId).get().then(
       (data) {
-        if(data != null && (data["data"] as List).isNotEmpty) {
-          replaceDependencies((data["data"] as List).map((d) => Dependency.fromJson(d as Map<String, dynamic>)).toList());
+        if(data != null && (data["data"] as Map).isNotEmpty) {
+          replaceDependencies((data["data"] as Map).values.map((d) => Dependency.fromJson(d as Map<String, dynamic>)).toList());
         }
       }
     );
-    Localstore.instance.collection(Datainfo.referenceCollectionKey).doc(projectId).get().then(
+    await Localstore.instance.collection(Datainfo.referenceCollectionKey).doc(projectId).get().then(
       (data) {
-        if(data != null && (data["data"] as List).isNotEmpty) {
-          replaceReferences((data["data"] as List).map((d) => Reference.fromJson(d as Map<String, dynamic>)).toList());
+        if(data != null && (data["data"] as Map).isNotEmpty) {
+          replaceReferences((data["data"] as Map).values.map((d) => Reference.fromJson(d as Map<String, dynamic>)).toList());
         }
       }
     );
-    Localstore.instance.collection(Datainfo.requirementCollectionKey).doc(projectId).get().then(
+    await Localstore.instance.collection(Datainfo.requirementCollectionKey).doc(projectId).get().then(
       (data) {
-        if(data != null && (data["data"] as List).isNotEmpty) {
-          replaceRequirements((data["data"] as List).map((d) => Requirement.fromJson(d as Map<String, dynamic>)).toList());
+        if(data != null && (data["data"] as Map).isNotEmpty) {
+          replaceRequirements((data["data"] as Map).values.map((d) => Requirement.fromJson(d as Map<String, dynamic>)).toList());
         }
       }
     );

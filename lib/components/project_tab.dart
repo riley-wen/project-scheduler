@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:project_scheduler/data/project.dart';
+import 'package:project_scheduler/data/project_export.dart';
 import 'package:project_scheduler/pages/editprojectpage/editprojectpage.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -14,7 +15,6 @@ class ProjectTab extends StatelessWidget {
     return 
       ConstrainedBox(
         constraints: BoxConstraints(
-          maxHeight: 120,
           maxWidth: 850
         ),
         child: Container(
@@ -56,7 +56,7 @@ class ProjectTab extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      "Last modified ${project.timeModified.toString()}",
+                      "Last modified ${DateFormat('yyyy-MM-dd').format(project.timeModified)}",
                       style: GoogleFonts.openSans(
                         fontSize: 12.0,
                         fontWeight: FontWeight.w400,
@@ -67,15 +67,19 @@ class ProjectTab extends StatelessWidget {
                 ),
 
                 SizedBox(height: 4.0),
-                Text(
-                  project.description,
-                  style: GoogleFonts.openSans(
-                    fontSize: 15.0,
-                    fontWeight: FontWeight.w300,
-                    color: Theme.of(context).colorScheme.onSurface
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 500),
+                  child: Text(
+                    project.description,
+                    style: GoogleFonts.openSans(
+                      fontSize: 15.0,
+                      fontWeight: FontWeight.w300,
+                      color: Theme.of(context).colorScheme.onSurface
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
+                    maxLines: 4,
                   ),
-                  overflow: TextOverflow.ellipsis,
-                  softWrap: true,
                 ),
                 SizedBox(height: 4.0),
               ],
@@ -97,7 +101,13 @@ class ProjectTab extends StatelessWidget {
                   builder: (context) => Text("Export"),
                   child: ShadIconButton.outline(
                   onPressed: () {
-                    
+                    Project.loadById(project.projectId).then(
+                      (p) {
+                        if (p != null) {
+                          print(exportProjectReadMe(p, settings: ExportSettings(format: ExportFormat.text, includeRequirements: true)));
+                        }
+                      }
+                    );
                   },
                   icon: const Icon(LucideIcons.share),
                 )),
@@ -135,9 +145,7 @@ class ProjectTab extends StatelessWidget {
                           ),
                         ],
                       ),
-                    ).then((isDelete) {
-                      // delete project here
-                    });
+                    );
                   },
                   icon: const Icon(LucideIcons.trash),
                 )

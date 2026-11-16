@@ -96,7 +96,7 @@ class _RequirementUnitForm extends State<RequirementUnitForm> {
     return ShadForm(
       key: formKey,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 350),
+        constraints: const BoxConstraints(maxWidth: 800),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -156,7 +156,7 @@ class _DependencyUnitForm extends State<DependencyUnitForm> {
     return ShadForm(
       key: formKey,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 350),
+        constraints: const BoxConstraints(maxWidth: 550),
         child: Column(
           spacing: 20,
           crossAxisAlignment: CrossAxisAlignment.start,

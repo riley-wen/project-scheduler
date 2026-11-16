@@ -3,16 +3,19 @@
 import 'package:project_scheduler/data/projectunit.dart';
 
 class Reference extends ProjectUnit {
-  final String label;
-  final String reference;
+  String label;
+  String reference;
 
-  const Reference(this.label, this.reference);
+  Reference(this.label, this.reference);
 
-  Map<String, dynamic> toJson() => {
+  @override
+  Map<String, dynamic> toJson() => super.toJson()..addAll({
     "label": label,
     "reference": reference
-  };
-  Reference.fromJson(Map<String, dynamic> json) :
+  });
+
+  Reference.fromJson(super.json) :
     label = json["label"],
-    reference = json["reference"];
+    reference = json["reference"],
+    super.fromJson();
 }

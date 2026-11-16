@@ -83,8 +83,8 @@ class _EditProjectPageState extends State<_EditProjectPage> {
             children: [
               ShadResizablePanel(
                 id: 0,
-                defaultSize: .7,
-                minSize: .4,
+                defaultSize: .6,
+                minSize: .2,
                 child: SingleChildScrollView(
                   padding: EdgeInsets.symmetric(horizontal: 24, vertical: 48),
                   child: Column(
@@ -94,6 +94,16 @@ class _EditProjectPageState extends State<_EditProjectPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if(selectedProject != null) ...[
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            "ID: ${selectedProject?.projectId ?? "..."}", 
+                            style: theme.textTheme.muted.apply(
+                              color: theme.colorScheme.mutedForeground,
+                              fontSizeDelta: -2.0
+                            )
+                          ),
+                        ),
                         ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 400),
                           child: ProjectTitleEditField(
@@ -141,21 +151,20 @@ class _EditProjectPageState extends State<_EditProjectPage> {
               ),
               ShadResizablePanel(
                 id: 1,
-                defaultSize: .3,
+                defaultSize: .4,
                 minSize: .25,
                 child: SingleChildScrollView(
                   padding: EdgeInsets.symmetric(horizontal: 24, vertical: 48),
                   child: Column(
                     mainAxisSize: MainAxisSize.max,
                     mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     spacing: 4.0,
                     children: [
                       ShadTabs(
                         value: unitTabValue,
                         gap: 40.0,
-                        tabBarConstraints: const BoxConstraints(maxWidth: 400),
-                        contentConstraints: const BoxConstraints(maxWidth: 400),
+                        tabBarConstraints: const BoxConstraints(maxWidth: 700),
                         tabs: [
                           ShadTab(
                             value: 'requirements',
@@ -166,11 +175,24 @@ class _EditProjectPageState extends State<_EditProjectPage> {
                               children: selectedProject == null ? [] : [
                                 ConstrainedBox(
                                   constraints: const BoxConstraints(maxHeight: 500),
-                                  child: ProjectUnitTable(units: selectedProject!.requirements, onCheck: (req, v) {
-                                    setState(() {
-                                      req.completed = v;
-                                    });  
-                                  }),
+                                  child: ProjectUnitTable(
+                                    units: selectedProject!.requirements, 
+                                    onCheck: (req, v) {
+                                      setState(() {
+                                        req.completed = v;
+                                      });  
+                                    },
+                                    onEdit: (unit) {
+                                      setState(() {});
+                                      selectedProject!.saveProject();
+                                    },
+                                    onDelete: (unit) {
+                                      setState(() {
+                                        selectedProject!.removeUnit(unit);
+                                      });
+                                      selectedProject!.saveProject();
+                                    },
+                                  ),
                                 ),
                                 RequirementUnitForm(
                                   selectedProject: selectedProject!,
@@ -190,7 +212,19 @@ class _EditProjectPageState extends State<_EditProjectPage> {
                               children: selectedProject == null ? [] : [
                                 ConstrainedBox(
                                   constraints: const BoxConstraints(maxHeight: 500),
-                                  child: ProjectUnitTable(units: selectedProject!.dependencies),
+                                  child: ProjectUnitTable(
+                                    units: selectedProject!.dependencies,
+                                    onEdit: (unit) {
+                                      setState(() {});
+                                      selectedProject!.saveProject();
+                                    },
+                                    onDelete: (unit) {
+                                      setState(() {
+                                        selectedProject!.removeUnit(unit);
+                                      });
+                                      selectedProject!.saveProject();
+                                    },
+                                  ),
                                 ),
                                 DependencyUnitForm(selectedProject: selectedProject!, onAdd: (dep){
                                   setState(() {
@@ -209,7 +243,19 @@ class _EditProjectPageState extends State<_EditProjectPage> {
                               children: selectedProject == null ? [] : [
                                 ConstrainedBox(
                                   constraints: const BoxConstraints(maxHeight: 500),
-                                  child: ProjectUnitTable(units: selectedProject!.references),
+                                  child: ProjectUnitTable(
+                                    units: selectedProject!.references,
+                                    onEdit: (unit) {
+                                      setState(() {});
+                                      selectedProject!.saveProject();
+                                    },
+                                    onDelete: (unit) {
+                                      setState(() {
+                                        selectedProject!.removeUnit(unit);
+                                      });
+                                      selectedProject!.saveProject();
+                                    },
+                                  ),
                                 ),
                                 ReferenceUnitForm(
                                   selectedProject: selectedProject!,

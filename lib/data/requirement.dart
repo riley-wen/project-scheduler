@@ -6,11 +6,14 @@ class Requirement extends ProjectUnit {
   
   Requirement(this.description);
 
-  Map<String, dynamic> toJson() => {
+  @override
+  Map<String, dynamic> toJson() => super.toJson()..addAll({
     "description": description,
     "completed": completed,
-  };
-  Requirement.fromJson(Map<String, dynamic> json) :
-  description = json["description"], 
-  completed = json["completed"];
+  });
+
+  Requirement.fromJson(super.json) :
+    description = json["description"], 
+    completed = json["completed"],
+    super.fromJson();
 }

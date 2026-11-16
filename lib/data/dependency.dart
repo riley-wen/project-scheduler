@@ -10,15 +10,18 @@ class Dependency extends ProjectUnit {
     this.version,
     this.link  
   );
-  Map<String, dynamic> toJson() => {
+
+  Map<String, dynamic> toJson() => super.toJson()..addAll({
     "name": name,
     "version": version,
     "link": link
-  };
-  Dependency.fromJson(Map<String, dynamic> json) :
+  });
+
+  Dependency.fromJson(super.json) :
     name = json["name"],
     version = json["version"],
-    link = json["link"];
+    link = json["link"],
+    super.fromJson();
 
   @override
   bool operator ==(Object other) =>
