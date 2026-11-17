@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project_scheduler/components/project_noteswriterfield.dart';
 import 'package:project_scheduler/components/project_unit_table.dart';
 import 'package:project_scheduler/data/project.dart';
 import 'package:project_scheduler/components/project_descriptioneditfield.dart';
@@ -144,7 +145,12 @@ class _EditProjectPageState extends State<_EditProjectPage> {
                             }
                           },
                         ),
-                        SizedBox(height: 1000)
+                        const SizedBox(height: 20),
+                        if(selectedProject != null) ProjectNotesWriterField(
+                          projectId: selectedProject!.projectId, 
+                          notesId: "NOTES_TEST_ID"
+                        ),
+                        SizedBox(height: 200)
                       ]
                     ],
                   ),
