@@ -7,7 +7,7 @@ import 'package:project_scheduler/pages/unknownPage.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized(); // Required for safe Localstore initialization
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   runApp(const MainApp());
 }
@@ -20,7 +20,6 @@ class MainApp extends StatelessWidget {
     return ShadApp.custom(
       themeMode: ThemeMode.dark,
       darkTheme: ShadThemeData(
-        //brightness: Brightness.dark,
         colorScheme: const ShadSlateColorScheme.dark(),
       ),
       appBuilder: (context) {
@@ -29,7 +28,7 @@ class MainApp extends StatelessWidget {
             GlobalMaterialLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
-            FlutterQuillLocalizations.delegate,
+            FlutterQuillLocalizations.delegate, 
           ],
           theme: ThemeData.dark(),
           title: 'Project Scheduler',
@@ -40,10 +39,10 @@ class MainApp extends StatelessWidget {
           },
           routes: Routes.routes.map((route, routeObj) => MapEntry(route, (BuildContext cxt) => routeObj.widget(cxt))),
           onGenerateRoute: (settings) {
-            if(settings.name == null || !Routes.routes.keys.contains("${settings.name}")){
+            if(settings.name == null || !Routes.routes.keys.contains("${settings.name}")){ // If a route name is pushed but not recognized, return an unknwon page
               return MaterialPageRoute(builder: (_) => UnknownPage());
             }
-            return PageRouteBuilder(
+            return PageRouteBuilder( // Builds a page for each route
               settings: settings,
               pageBuilder: (context, animation, secondaryAnimation) => Routes.routes[settings.name]!.widget(context),
               transitionsBuilder: (_, a, _, c) => FadeTransition(opacity: a, child: c)

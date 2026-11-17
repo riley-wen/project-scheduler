@@ -23,15 +23,16 @@ class _ProjectExportSheetState extends State<ProjectExportSheet> {
   );
 
   void rebuildExport() async {
-      exportProject = await Project.loadById(widget.exportedProjectId);
-      if (exportProject != null) {
-        setState(() {
-          exportController.text = exportProjectReadMe(
-            exportProject!,
-            settings: exportSettings
-          );
-        });
-      }
+    // Rebuilds the project's documentation export using the applied settings.
+    exportProject = await Project.loadById(widget.exportedProjectId);
+    if (exportProject != null) {
+      setState(() {
+        exportController.text = exportProjectReadMe(
+          exportProject!,
+          settings: exportSettings
+        );
+      });
+    }
   }
   @override
   void initState() {

@@ -104,7 +104,7 @@ class ProjectTab extends StatelessWidget {
                   onPressed: () {
                     Project.loadById(project.projectId).then(
                       (p) {
-                        if (p != null) {
+                        if (p != null && context.mounted) {
                           showShadSheet(
                             side: ShadSheetSide.right,
                             context: context,

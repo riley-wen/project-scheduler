@@ -79,6 +79,9 @@ class ProjectUnitTable extends StatelessWidget {
                 textAlign: TextAlign.left,
               ),
               const SizedBox(height: 20,)
+            // ==============================================
+            // Reference editing dialog UI
+            // ==============================================
             ]) + (unit is Reference ? [
                ShadForm(
                 key: _formKey,
@@ -122,6 +125,9 @@ class ProjectUnitTable extends StatelessWidget {
                   )
                 ),
               )
+            // ==============================================
+            // Requirement editing dialog UI
+            // ==============================================
             ] : unit is Requirement ? [
                ShadForm(
                 key: _formKey,
@@ -138,6 +144,9 @@ class ProjectUnitTable extends StatelessWidget {
                     ),
                 ),
               )
+            // ==============================================
+            // Dependency editing dialog UI
+            // ==============================================
             ] : unit is Dependency ? [
               ShadForm(
                 key: _formKey,
@@ -205,6 +214,7 @@ class ProjectUnitTable extends StatelessWidget {
                       leading: const Icon(LucideIcons.trash),
                       child: const Text('Delete'),
                       onPressed: () {
+                        // Deletes the project unit, then calls setState a widget upwards to update the UI.
                         onDelete(unit);
                         (Navigator.of(context)..pop(true)).pop(true);
                       }
@@ -227,18 +237,34 @@ class ProjectUnitTable extends StatelessWidget {
             child: const Text('Save'),
             onPressed: () {
               if (!_formKey.currentState!.validate()) {
+                if (context.mounted) {
+                  ShadToaster.of(context).show(
+                    ShadToast(
+                      title: const Text("Could not edit project unit"),
+                      showCloseIconOnlyWhenHovered: false,
+                    )
+                  );
+                }
                 return;
               } 
-
+              // Edits a project unit by reference, then calls upwards a widget in order to rebuild the UI for updated changes
+              // Automatically saves the project when edited (because I forget to click save)
+              // (I refuse to use switch statements)
               if (unit is Reference) {
+
                 unit.label = _formKey.currentState!.value["reference_label"];
                 unit.reference = _formKey.currentState!.value["reference_reference"];
+
               } else if (unit is Requirement) {
+
                 unit.description = _formKey.currentState!.value["requirement_description"];
+
               } else if (unit is Dependency) {
+
                 unit.name = _formKey.currentState!.value["dependency_name"];
                 unit.version = _formKey.currentState!.value["dependency_version"];
                 unit.link = _formKey.currentState!.value["dependency_link"];
+
               }
 
               onEdit(unit);
@@ -362,7 +388,6 @@ class ProjectUnitTable extends StatelessWidget {
           } else if (index == 1) {
             return const FixedTableSpanExtent(100);
           }
-          // uses the default value
           return const FixedTableSpanExtent(200);
         },
         onRowTap: (row) {
@@ -387,7 +412,7 @@ class ProjectUnitTable extends StatelessWidget {
         ),
       ) : Text("Dependencies will appear here", style: theme.textTheme.small.merge(TextStyle(color: theme.colorScheme.mutedForeground)))
     )
-    // Unknown type of project unit passed
+    // Unknown type of project unit passed somehow
       : Text("Unknown project unit", style: theme.textTheme.small.merge(TextStyle(color: theme.colorScheme.mutedForeground)));
     
     

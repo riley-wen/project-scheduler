@@ -24,7 +24,7 @@ final class Routes {
       widget: (BuildContext context) => HomePage(),
       name: "Home",
     ),
-    "/createproject": Routes( // figure out dynamic routing for editing / creatubg
+    "/createproject": Routes(
       widget: (BuildContext context) => CreateProjectPage(),
       name: "CreateProject",
     ),

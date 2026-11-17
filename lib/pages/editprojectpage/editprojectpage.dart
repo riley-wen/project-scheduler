@@ -37,6 +37,7 @@ class _EditProjectPageState extends State<_EditProjectPage> {
 
   @override
   void initState() {
+    // Loads the selected project into widget memory
     Project.loadById(widget.projectId).then((proj) => setState(() {
       if (proj == null) return;
       selectedProject = proj;

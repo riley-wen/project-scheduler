@@ -1,5 +1,6 @@
 import 'package:project_scheduler/data/projectunit.dart';
 
+/// A requirement of the project describes a task that needs to be fulfilled for the project.
 class Requirement extends ProjectUnit {
   String description;
   bool completed = false;

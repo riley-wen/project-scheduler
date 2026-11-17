@@ -25,8 +25,6 @@ class HomePage extends StatelessWidget {
         child: const Text('New project'),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Stack(
           children: [
             ProjectList(),
@@ -48,7 +46,8 @@ class _ProjectListState extends State<ProjectList> {
   late StreamSubscription headerListener;
 
   @override
-  void initState() {
+  void initState() { 
+    // Loads all headers into widget memory, listening for deletes and updates and updating ui when detecting changes
     headerListener = HeaderCache.instance.headerStream.listen((headers) {
       setState(() {
         projectHeaders = headers..sort((a, b) => -a.timeModified.compareTo(b.timeModified));

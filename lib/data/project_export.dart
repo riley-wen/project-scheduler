@@ -6,10 +6,17 @@ String _encapsulateText(String text) =>
 ${text}
 ==============================================================""";
 
+/// Exports a project into documentation readable by the format and export settings specified.
+/// 
+/// @param project The project to export
+/// 
+/// @param settings The export settings to use, uses default if not provided
+/// 
+/// @returns The project's documentation in one string
 String exportProjectReadMe(
   Project project,
   {
-    ExportSettings? settings
+    ExportSettings? settings 
   }
 ) {
   settings ??= ExportSettings.defaultSettings;
@@ -80,11 +87,15 @@ ${
   return "README format error";
 }
 
+/// Enums representing format of the project export
 enum ExportFormat {
   text,
   github
 }
+
+/// Wrapper class for various export settings
 class ExportSettings {
+  /// The default export settings used if none are provided.
   static final ExportSettings defaultSettings = ExportSettings(
     format: ExportFormat.github
   );
