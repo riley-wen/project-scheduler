@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:project_scheduler/data/dependency.dart';
-import 'package:project_scheduler/data/projectunit.dart';
+import 'package:project_scheduler/data/project_unit.dart';
 import 'package:project_scheduler/data/reference.dart';
 import 'package:project_scheduler/data/requirement.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';

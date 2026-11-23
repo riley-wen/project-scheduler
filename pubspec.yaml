@@ -14,7 +14,7 @@ dependencies:
   flutter_quill: ^11.5.0
   google_fonts: ^8.2.1
   localstore: ^1.4.0
-  shadcn_ui: ^0.57.4
+  shadcn_ui: ^0.59.0
 
 dev_dependencies:
   flutter_test:

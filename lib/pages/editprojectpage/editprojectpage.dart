@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:project_scheduler/components/project_noteswriterfield.dart';
+import 'package:flutter_quill/flutter_quill.dart';
+import 'package:project_scheduler/components/project_notes_writer_field.dart';
 import 'package:project_scheduler/components/project_unit_table.dart';
 import 'package:project_scheduler/data/project.dart';
-import 'package:project_scheduler/components/project_descriptioneditfield.dart';
+import 'package:project_scheduler/components/project_description_edit_field.dart';
 import 'package:project_scheduler/components/project_title_edit_field.dart';
 import 'package:project_scheduler/components/project_unit_form.dart';
+import 'package:project_scheduler/data/project_note.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 class EditProjectScreenArguments {
@@ -31,10 +33,12 @@ class _EditProjectPage extends StatefulWidget {
 }
 class _EditProjectPageState extends State<_EditProjectPage> {
   Project? selectedProject;
+  ProjectNote? selectedNote;
   String unitTabValue = 'requirements';
 
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descController = TextEditingController();
+  final QuillController noteController = .basic();
 
   @override
   void initState() {
@@ -106,51 +110,105 @@ class _EditProjectPageState extends State<_EditProjectPage> {
                             )
                           ),
                         ),
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 400),
-                          child: ProjectTitleEditField(
-                            selectedProject: selectedProject!, 
-                            textController: titleController,
-                          )
-                        ),
                         ProjectDescriptionEditField(
                           selectedProject: selectedProject!,
-                          textController: descController, 
+                          titleController: titleController,
+                          descriptionController: descController, 
                         ),
-                        ShadButton(
-                          leading: const Icon(LucideIcons.save),
-                          child: Text("Save"),
-                          onPressed: () {
-                            if (selectedProject == null) {
-                              ShadToaster.of(context).show(
-                                ShadToast(
-                                  title: const Text('Unable to add project'),
-                                  description:
-                                      const Text('No project selected'),
-                                )
-                              );
-                            } else {
-                              selectedProject!.saveProject().then((a) {
-                                if (a != null) {
-                                  // ignore: use_build_context_synchronously
-                                  ShadToaster.of(context).show(
-                                    ShadToast(
-                                      title: const Text('An error occured'),
-                                      description:
-                                        Text(a.toString()),
+                        const SizedBox(height: 16),
+                        if(selectedProject != null) ShadResizablePanelGroup(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ShadResizablePanel(
+                              id: 11, 
+                              defaultSize: 0.25,
+                              minSize: 0.1,
+                              child: Padding(
+                                padding: .symmetric(
+                                  horizontal: 18,
+                                  vertical: 12
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  spacing: 4.0,
+                                  children: [
+                                    ...(selectedProject != null ? selectedProject!.notes : <ProjectNote>[]).map(
+                                      (note) => ConstrainedBox(
+                                        constraints: BoxConstraints(),
+                                        child: ShadItem.outline(
+                                          backgroundColor: selectedNote == note ? theme.colorScheme.primaryForeground : null,
+                                          size: ShadItemSize.sm,
+                                          onPressed: () {
+                                            setState(() {
+                                              if (selectedNote != note) {
+                                                selectedNote = note;
+                                                noteController.document = note.document;
+                                              }
+                                            });
+                                          },
+                                          media: selectedNote == note ? const Icon(LucideIcons.chevronRight) : null,
+                                          title: Text(note.name)
+                                        ),
+                                      )
+                                    ),
+                                    ShadItem.outline(
+                                      onPressed: () {
+                                        if(selectedProject == null) {
+                                          return;
+                                        }
+                                        ProjectNote newNote = ProjectNote(
+                                          "Untitled note",
+                                          Document()
+                                        );
+                                        setState(() {
+                                          selectedProject!.notes.add(newNote);
+                                          selectedNote = newNote;
+                                          noteController.document = newNote.document;
+                                        });
+                                      },
+                                      media: const Icon(LucideIcons.plus),
+                                      child: const Text("Add note"),
                                     )
-                                  );
-                                }
-                              });
-                            }
-                          },
+                                  ],
+                                ), 
+                              )
+                            ),
+                            ShadResizablePanel(
+                              id: 12, 
+                              minSize: 0.4,
+                              defaultSize: 0.75,
+                              child: Padding(
+                                padding: .symmetric(
+                                  horizontal: 18,
+                                  vertical: 12
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  spacing: 4.0,
+                                  children: [
+                                    if(selectedNote != null) ProjectNotesWriterField(
+                                      key: Key(selectedNote!.unitId),
+                                      controller: noteController,
+                                      projectNote: selectedNote!, 
+                                      project: selectedProject!,
+                                      onDelete: () {
+                                        selectedProject!.removeUnit(selectedNote!);
+                                        selectedProject!.saveProject();
+                                        setState(() {
+                                          selectedNote = null;
+                                        });
+                                      },
+                                    ) else Container(
+                                      alignment: .center,
+                                      child: const Text("No note selected"),
+                                    )
+                                  ],
+                                ),
+                              )
+                            )
+                          ]
                         ),
-                        const SizedBox(height: 20),
-                        if(selectedProject != null) ProjectNotesWriterField(
-                          projectId: selectedProject!.projectId, 
-                          notesId: "NOTES_TEST_ID"
-                        ),
-                        SizedBox(height: 200)
+                        SizedBox(height: 100)
                       ]
                     ],
                   ),
@@ -205,6 +263,7 @@ class _EditProjectPageState extends State<_EditProjectPage> {
                                   selectedProject: selectedProject!,
                                   onAdd: (req) => setState(() {
                                     selectedProject!.requirements.add(req);
+                                    selectedProject!.saveProject();
                                   }),
                                 )
                               ],
@@ -236,6 +295,7 @@ class _EditProjectPageState extends State<_EditProjectPage> {
                                 DependencyUnitForm(selectedProject: selectedProject!, onAdd: (dep){
                                   setState(() {
                                     selectedProject!.dependencies.add(dep);
+                                    selectedProject!.saveProject();
                                   });
                                 })
                               ],
@@ -268,6 +328,7 @@ class _EditProjectPageState extends State<_EditProjectPage> {
                                   selectedProject: selectedProject!,
                                   onAdd: (ref) => setState(() {
                                     selectedProject!.references.add(ref);
+                                    selectedProject!.saveProject();
                                   }),
                                 )
                               ],

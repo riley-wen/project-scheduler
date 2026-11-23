@@ -1,6 +1,6 @@
 
 
-import 'package:project_scheduler/data/projectunit.dart';
+import 'package:project_scheduler/data/project_unit.dart';
 
 /// A reference to a project's related links (e.g. Github, hosted website, other version control website etc.)
 class Reference extends ProjectUnit {

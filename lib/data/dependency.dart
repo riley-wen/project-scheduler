@@ -1,4 +1,4 @@
-import 'package:project_scheduler/data/projectunit.dart';
+import 'package:project_scheduler/data/project_unit.dart';
 
 /// A dependency is an external resource that the project depends on in order to function.
 class Dependency extends ProjectUnit {

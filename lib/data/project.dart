@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:localstore/localstore.dart';
-import 'package:project_scheduler/data/datainfo.dart';
+import 'package:project_scheduler/data/data_info.dart';
 import 'package:project_scheduler/data/dependency.dart';
-import 'package:project_scheduler/data/projectunit.dart';
+import 'package:project_scheduler/data/project_note.dart';
+import 'package:project_scheduler/data/project_unit.dart';
 import 'package:project_scheduler/data/reference.dart';
 import 'package:project_scheduler/data/requirement.dart';
 
@@ -26,9 +27,9 @@ class HeaderCache {
   static final HeaderCache instance = HeaderCache._internal();
 
   /// Initializes the singleton instance and subscribes to the Localstore stream.
-  /// Since project headers do not include project units, only the [Datainfo.projectCollectionKey] needs to be subscribed to.
+  /// Since project headers do not include project units, only the [DataInfo.projectCollectionKey] needs to be subscribed to.
   HeaderCache._internal() {
-    _headerSubscription = Localstore.instance.collection(Datainfo.projectCollectionKey).stream.listen((data) {
+    _headerSubscription = Localstore.instance.collection(DataInfo.projectCollectionKey).stream.listen((data) {
       Project header = Project.fromJson(data);
       headerList.removeWhere((p) => p.projectId == header.projectId);
       headerList = [...headerList, header];
@@ -38,7 +39,7 @@ class HeaderCache {
 
   /// Deletes a project from locally stored data and records changes in [HeaderCache.headerList]
   void delete(String projectId) {
-    Localstore.instance.collection(Datainfo.projectCollectionKey).doc(projectId).delete();
+    Localstore.instance.collection(DataInfo.projectCollectionKey).doc(projectId).delete();
     headerList.removeWhere((p) => p.projectId == projectId);
     _headerStream.sink.add([...headerList]);
   }
@@ -68,6 +69,8 @@ class Project {
   final List<Dependency> dependencies = List<Dependency>.empty(growable: true);
   /// Keeps track of all [Reference] objects tied to the project.
   final List<Reference> references = List<Reference>.empty(growable: true);
+  // Keeps track of all [ProjectNote] objects tied to the project.
+  final List<ProjectNote> notes = List<ProjectNote>.empty(growable: true);
 
   /// Unique identification string to represent a project, always generated internally or loaded from local data.
   late final String projectId;
@@ -125,6 +128,8 @@ class Project {
       requirements.removeWhere((u) => u.unitId == unit.unitId);
     } else if (unit is Dependency) {
       dependencies.removeWhere((u) => u.unitId == unit.unitId);
+    } else if (unit is ProjectNote) {
+      notes.removeWhere((u) => u.unitId == unit.unitId);
     } else {
       return "Error: Could not detect unit type";
     }
@@ -135,13 +140,13 @@ class Project {
   /// 
   /// @returns A future that leads to a list of all locally stored project IDs.
   static Future<List<String>> getAllIds() async 
-    => Localstore.instance.collection(Datainfo.projectCollectionKey).get().then((all) => all?.keys.toList() ?? []);
+    => Localstore.instance.collection(DataInfo.projectCollectionKey).get().then((all) => all?.keys.toList() ?? []);
 
   /// Returns a future that contains a list of all locally stored project headers.
   /// 
   /// @returns A future that leads to a list of all locally stored project headers,
   static Future<List<Project>> getProjectHeaders() async 
-    => Localstore.instance.collection(Datainfo.projectCollectionKey).get().then((all) => all?.values.map(
+    => Localstore.instance.collection(DataInfo.projectCollectionKey).get().then((all) => all?.values.map(
       (data) => Project.fromJson(data as Map<String, dynamic>)).toList() ?? []);
 
   /// Loads a project header by string ID. Automatically loads all associated project units as well.
@@ -150,7 +155,7 @@ class Project {
   /// 
   /// @returns A future that leads to the corresponding project and included elements, null if not existing.
   static Future<Project?> loadById(String id) async {
-    Project? ret = await Localstore.instance.collection(Datainfo.projectCollectionKey).doc(id).get().then(
+    Project? ret = await Localstore.instance.collection(DataInfo.projectCollectionKey).doc(id).get().then(
       (data) => data != null ? Project.fromJson(data) : null);
     if (ret == null) return null;
     await ret._loadElements();
@@ -163,7 +168,7 @@ class Project {
   Future<Object?> saveProject() async {
     try {
       timeModified = DateTime.now();
-      await Localstore.instance.collection(Datainfo.projectCollectionKey).doc(projectId).set(toJson());
+      await Localstore.instance.collection(DataInfo.projectCollectionKey).doc(projectId).set(toJson());
       await _saveElements();
       return null;
     } catch (e) {
@@ -173,40 +178,51 @@ class Project {
 
   /// Saves all project units in their corresponding files.
   Future<void> _saveElements() async {
-    await Localstore.instance.collection(Datainfo.dependencyCollectionKey).doc(projectId).set({
+    await Localstore.instance.collection(DataInfo.dependencyCollectionKey).doc(projectId).set({
       "last_saved" : DateTime.now().millisecondsSinceEpoch,
       "data" : {for (Dependency item in dependencies) item.unitId : item.toJson()}
     });
-    await Localstore.instance.collection(Datainfo.requirementCollectionKey).doc(projectId).set({
+    await Localstore.instance.collection(DataInfo.requirementCollectionKey).doc(projectId).set({
       "last_saved" : DateTime.now().millisecondsSinceEpoch,
       "data" : {for (Requirement item in requirements) item.unitId : item.toJson()}
     });
-    await Localstore.instance.collection(Datainfo.referenceCollectionKey).doc(projectId).set({
+    await Localstore.instance.collection(DataInfo.referenceCollectionKey).doc(projectId).set({
       "last_saved" : DateTime.now().millisecondsSinceEpoch,
       "data" : {for (Reference item in references) item.unitId : item.toJson()}
+    });
+    await Localstore.instance.collection(DataInfo.notesCollectionkey).doc(projectId).set({
+      "last_saved" : DateTime.now().millisecondsSinceEpoch,
+      "data" : {for (ProjectNote item in notes) item.unitId : item.toJson()}
     });
   }
 
   /// Loads all project unit lists in the project with all retrieved units related to the project's ID.
   Future<void> _loadElements() async {
-    await Localstore.instance.collection(Datainfo.dependencyCollectionKey).doc(projectId).get().then(
+    await Localstore.instance.collection(DataInfo.dependencyCollectionKey).doc(projectId).get().then(
       (data) {
         if(data != null && (data["data"] as Map).isNotEmpty) {
           replaceDependencies((data["data"] as Map).values.map((d) => Dependency.fromJson(d as Map<String, dynamic>)).toList());
         }
       }
     );
-    await Localstore.instance.collection(Datainfo.referenceCollectionKey).doc(projectId).get().then(
+    await Localstore.instance.collection(DataInfo.referenceCollectionKey).doc(projectId).get().then(
       (data) {
         if(data != null && (data["data"] as Map).isNotEmpty) {
           replaceReferences((data["data"] as Map).values.map((d) => Reference.fromJson(d as Map<String, dynamic>)).toList());
         }
       }
     );
-    await Localstore.instance.collection(Datainfo.requirementCollectionKey).doc(projectId).get().then(
+    await Localstore.instance.collection(DataInfo.requirementCollectionKey).doc(projectId).get().then(
       (data) {
         if(data != null && (data["data"] as Map).isNotEmpty) {
           replaceRequirements((data["data"] as Map).values.map((d) => Requirement.fromJson(d as Map<String, dynamic>)).toList());
+        }
+      }
+    );
+    await Localstore.instance.collection(DataInfo.notesCollectionkey).doc(projectId).get().then(
+      (data) {
+        if(data != null && (data["data"] as Map).isNotEmpty) {
+          replaceNotes((data["data"] as Map).values.map((d) => ProjectNote.fromJson(d as Map<String, dynamic>)).toList());
         }
       }
     );
@@ -224,6 +240,8 @@ class Project {
   /// 
   /// @param res The replacement list
   void replaceReferences(List<Reference> res) => references.replaceRange(0, references.length, res);
+
+  void replaceNotes(List<ProjectNote> res) => notes.replaceRange(0, notes.length, res);
 
   /// Generates a unique ID string among all registered project IDs and then registers it as a used ID.
   /// 

@@ -56,3 +56,4 @@ app.*.map.json
 /reference_collection
 /requirement_collection
 /dependency_collection
+/projectnotes_collection

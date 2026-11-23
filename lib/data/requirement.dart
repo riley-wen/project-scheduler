@@ -1,4 +1,4 @@
-import 'package:project_scheduler/data/projectunit.dart';
+import 'package:project_scheduler/data/project_unit.dart';
 
 /// A requirement of the project describes a task that needs to be fulfilled for the project.
 class Requirement extends ProjectUnit {
