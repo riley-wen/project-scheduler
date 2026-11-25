@@ -28,3 +28,8 @@ The main feature, which are projects and their sub-units, are locally stored bas
 4. Add project and project unit creating, editing and deleting functionality
 5. Add ability to export project into a README.md
  
+ ## How to Use
+ This section covers how to download and use the project tool on Windows.
+ 1. Download the "Release.zip" file and unpack it in any desired directory.
+ 2. Open the "Release" folder and execute the file named "project_scheduler.exe".
+ Other platforms have not been tested, so release builds have only been made for the Windows platform.
